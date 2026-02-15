@@ -34,7 +34,33 @@ export const JmaxSchema = z.number().max(1280).nullable();
 
 export const SSchema = z.number().max(1132).nullable();
 
-export const HSchema = z.number().min(5).max(2147483647).nullable();
+const H_MIN = 5;
+const H_MAX = 2 ** 31 - 1;
+
+export const HSchema = z
+  .string()
+  .transform(v => v.replace(/\s+/g, ''))
+  .refine(v => v === '' || /^\d+(-\d+)?$/.test(v), {
+    message: t('zod.generic.validNumberRange')
+  })
+  .refine(v => {
+    // if single number
+    if (!v.includes('-')) {
+      const num = Number(v);
+      if ( num < H_MIN || num > H_MAX )
+        return false;
+      return `${num}`;
+    }
+
+    // if number range
+    const [min, max] = v.split('-').map(Number);
+    if ( min < H_MIN || max > H_MAX || min > max )
+      return false;
+    return min === max ? `${min}` : `${min}-${max}`;
+  }, {
+    message: t('zod.generic.validNumberRange')
+  })
+  .nullable();
 
 export const ISchema = z.string().nullable();
 
