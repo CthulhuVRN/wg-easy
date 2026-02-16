@@ -40,25 +40,26 @@ const H_MAX = 2 ** 31 - 1;
 export const HSchema = z
   .string()
   .transform(v => v.replace(/\s+/g, ''))
-  .refine(v => v === '' || /^\d+(-\d+)?$/.test(v), {
-    message: t('zod.generic.validNumberRange')
-  })
   .refine(v => {
-    // if single number
+    if (!v) return false;
+
+    if (!/^\d+(-\d+)?$/.test(v)) return false;
+
     if (!v.includes('-')) {
       const num = Number(v);
-      if ( num < H_MIN || num > H_MAX )
-        return false;
-      return `${num}`;
+      return num >= H_MIN && num <= H_MAX;
     }
-
-    // if number range
+    
     const [min, max] = v.split('-').map(Number);
-    if ( min < H_MIN || max > H_MAX || min > max )
-      return false;
-    return min === max ? `${min}` : `${min}-${max}`;
+    return min >= H_MIN && max <= H_MAX && min <= max;
   }, {
     message: t('zod.generic.validNumberRange')
+  })
+  .transform(v => {
+    if (!v.includes('-')) return `${Number(v)}`;
+
+    const [min, max] = v.split('-').map(Number);
+    return min === max ? `${min}` : `${min}-${max}`;
   })
   .nullable();
 
