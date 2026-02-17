@@ -52,8 +52,7 @@ export const HSchema = z
       }
 
       const [min, max] = v.split('-').map(Number);
-      if ( min && max )
-        return min >= H_MIN && max <= H_MAX && min <= max;
+      return min && max && min >= H_MIN && max <= H_MAX && min <= max;
 
       return false;
     },
